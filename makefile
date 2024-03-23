@@ -10,3 +10,27 @@ stop:
 
 ssh:
 	sudo ssh -i ${KEY} ec2-user@${IP}
+
+# Makefile
+
+# Variables
+IMAGE_NAME := my-node-app
+CONTAINER_NAME := my-node-container
+
+# Targets
+docker-build:
+	docker build -t $(IMAGE_NAME) .
+
+docker-run:
+	if docker ps -a --format '{{.Names}}' | grep -Eq '^$(CONTAINER_NAME)$$'; then \
+		make docker-stop; \
+	fi
+	docker run -d --name $(CONTAINER_NAME) -p 3000:3000 $(IMAGE_NAME)
+	@echo "Node.js server started."
+
+docker-start: docker-build docker-run
+
+docker-stop:
+	docker stop $(CONTAINER_NAME)
+	docker rm $(CONTAINER_NAME)
+	@echo "Node.js server stopped."
